@@ -1,14 +1,17 @@
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Button from "./Button";
 import { TiLocationArrow } from "react-icons/ti";
 import { useGSAP } from "@gsap/react";
 import gsap from "gsap";
+import { ScrollTrigger } from "gsap/all";
+
+gsap.registerPlugin(ScrollTrigger);
 const Hero = () => {
   const [currentIndex, setCurrentIndex] = useState(1);
   const [hasClicked, setHasClicked] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [loadedVideos, setLoadedVideos] = useState(0);
-  const totalVideos = 3;
+  const totalVideos = 4;
   const nextVideoRef = useRef(null);
   const handleVideoLoad = () => {
     setLoadedVideos((prevLoadedVideos) => prevLoadedVideos + 1);
@@ -18,6 +21,11 @@ const Hero = () => {
     setHasClicked(true);
     setCurrentIndex(upComingVideoIndex);
   };
+  useEffect(() => {
+    if (loadedVideos === totalVideos - 1) {
+      setIsLoading(false);
+    }
+  }, [loadedVideos]);
   useGSAP(
     () => {
       if (hasClicked) {
@@ -44,9 +52,35 @@ const Hero = () => {
       revertOnUpdate: true,
     }
   );
+  useGSAP(() => {
+    gsap.set("#video-frame", {
+      clipPath: "polygon(14% 0%, 72% 0%, 90% 90%, 0% 100%)",
+      borderRadius: "0 0 40% 10%",
+    });
+    gsap.from("#video-frame", {
+      clipPath: "polygon(0% 0%, 100% 0%, 100% 100%, 0% 100%)",
+      borderRadius: "0 0 0 0",
+      ease: "power1.inOut",
+      scrollTrigger: {
+        trigger: "#video-frame",
+        start: "center center",
+        end: "bottom center",
+        scrub: true,
+      },
+    });
+  });
   const getVideoSrc = (index) => `videos/hero-${index}.mp4`;
   return (
     <div className="relative h-dvh w-screen overflow-x-hidden">
+      {isLoading && (
+        <div className="flex-center absolute z-[100] h-dvh w-screen overflow-hidden bg-violet-50">
+          <div className="three-body">
+            <div className="three-body__dot"></div>
+            <div className="three-body__dot"></div>
+            <div className="three-body__dot"></div>
+          </div>
+        </div>
+      )}
       <div
         id="video-frame"
         className="relative z-10 h-dvh w-screen overflow-hidden rounded-lg bg-blue-75"
